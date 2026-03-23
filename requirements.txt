@@ -1,0 +1,9 @@
+# Port Scanner - Phase 1
+# No external dependencies needed
+# Using Python built-in libraries only
+
+# Built-in modules used:
+# - socket: for network connections
+# - datetime: for timing
+# - csv: for data export (Phase 2)
+# - os: for file operations (Phase 2)
