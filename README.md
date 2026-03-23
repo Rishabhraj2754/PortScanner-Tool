@@ -2,23 +2,23 @@
 
 **Educational Port Scanning Tool for Network Security Learning**
 
-## Project Status: 🟡 Phase 1 (In Progress)
+## Project Status: 🟡 Phase 2 (In Progress)
 
 ### Phase 1: Basic Setup ✅
 - [x] Project structure created
 - [x] Class initialization
-- [ ] Scanning logic
-- [ ] Service identification
-- [ ] Results display
+- [x] Git workflow setup
 
-### Phase 2: Core Features 🔄
-- [ ] Port scanning algorithm
-- [ ] Open/closed port detection
-- [ ] CSV export
-- [ ] Results formatting
+### Phase 2: Core Features ✅ (TODAY!)
+- [x] Port scanning algorithm
+- [x] Open/closed port detection
+- [x] Service identification (FTP, SSH, HTTP, etc)
+- [x] Results display with formatting
+- [x] Scan timing
 
 ### Phase 3: Advanced Features ⏳
-- [ ] Threading for speed
+- [ ] CSV export
+- [ ] Threading for faster scans
 - [ ] Vulnerability detection
 - [ ] Enhanced reporting
 

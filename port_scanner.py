@@ -2,28 +2,25 @@
 """
 PORT SCANNER - Network Security Tool
 Author: Rishabh Raj
-Purpose: Educational port scanning tool for learning network security
+Purpose: Educational port scanning tool
+Phase 2: Core scanning logic and service detection
 """
 
 import socket
-import sys
 from datetime import datetime
-import csv
-import os
 
 class PortScanner:
-    """
-    Port Scanner Tool
-    Scans target IP/domain for open ports
-    """
+    """Port Scanner Tool - Phase 2: Scanning Logic"""
     
     def __init__(self):
         self.open_ports = []
         self.closed_ports = []
+        self.target = None
+        self.target_ip = None
         self.start_time = None
         self.end_time = None
         
-        # Common ports and their services
+        # Common services and their ports
         self.services = {
             21: 'FTP',
             22: 'SSH',
@@ -50,19 +47,14 @@ class PortScanner:
         print("\n" + "="*60)
         print("🔍 PORT SCANNER - Network Security Tool")
         print("="*60)
-        print("Author: Rishabh Raj")
-        print("Purpose: Educational Network Scanning")
+        print("Author: Rishabh Raj | Phase 2: Scanning Logic")
         print("="*60 + "\n")
-    
-    def get_service_name(self, port):
-        """Get service name for port"""
-        return self.services.get(port, "Unknown")
     
     def resolve_ip(self, target):
         """Convert domain to IP if needed"""
         try:
-            # If it's a domain, convert to IP
             ip = socket.gethostbyname(target)
+            print(f"✓ Resolved: {target} → {ip}\n")
             return ip
         except socket.gaierror:
             print(f"❌ Error: Could not resolve '{target}'")
@@ -71,50 +63,48 @@ class PortScanner:
             print(f"❌ Error: Could not connect to '{target}'")
             return None
     
+    def get_service_name(self, port):
+        """Get service name for port"""
+        return self.services.get(port, "Unknown")
+    
     def scan_port(self, target_ip, port):
         """Scan single port"""
         try:
-            # Create socket
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(1)  # 1 second timeout
             
-            # Try to connect
             result = sock.connect_ex((target_ip, port))
             sock.close()
             
-            if result == 0:
-                return True  # Port is open
-            else:
-                return False  # Port is closed
-        except socket.error as e:
+            return result == 0  # True if open, False if closed
+        except socket.error:
             return False
     
     def scan_range(self, target, start_port, end_port):
         """Scan port range"""
-        self.start_time = datetime.now()
+        self.target = target
         
         # Resolve target if it's a domain
-        target_ip = self.resolve_ip(target)
-        if not target_ip:
+        self.target_ip = self.resolve_ip(target)
+        if not self.target_ip:
             return False
         
-        print(f"Target: {target} ({target_ip})")
+        self.start_time = datetime.now()
+        
         print(f"Scanning ports {start_port}-{end_port}...")
-        print("="*60)
+        print("="*60 + "\n")
         
         # Scan each port
         for port in range(start_port, end_port + 1):
-            if self.scan_port(target_ip, port):
+            if self.scan_port(self.target_ip, port):
                 service = self.get_service_name(port)
                 print(f"✓ Port {port:<6} : {service:<15} [OPEN]")
                 self.open_ports.append((port, service))
-            else:
-                # Don't print closed ports (too much output)
-                self.closed_ports.append(port)
             
             # Show progress every 100 ports
-            if port % 100 == 0:
-                print(f"  Progress: {port}/{end_port}")
+            if port % 100 == 0 and port != end_port:
+                elapsed = (datetime.now() - self.start_time).total_seconds()
+                print(f"  └─ Progress: {port}/{end_port} ({elapsed:.1f}s)")
         
         self.end_time = datetime.now()
         return True
@@ -123,45 +113,24 @@ class PortScanner:
         """Display scan results"""
         print("\n" + "="*60)
         print("📊 SCAN RESULTS")
-        print("="*60)
+        print("="*60 + "\n")
         
         if self.open_ports:
-            print(f"\n✓ Found {len(self.open_ports)} OPEN port(s):\n")
-            for port, service in self.open_ports:
+            print(f"✓ Found {len(self.open_ports)} OPEN port(s):\n")
+            for port, service in sorted(self.open_ports):
                 print(f"  Port {port:<6} : {service}")
         else:
-            print("\n❌ No open ports found")
+            print("❌ No open ports found\n")
         
-        print(f"\n✗ Closed ports: {len(self.closed_ports)}")
+        print(f"\n✗ Closed ports scanned: {len(self.closed_ports)}")
         
         # Calculate scan time
         scan_time = self.end_time - self.start_time
         print(f"\n⏱️  Scan Time: {scan_time.total_seconds():.2f} seconds")
         print("="*60 + "\n")
     
-    def save_to_csv(self, target):
-        """Save results to CSV file"""
-        # Create results directory if it doesn't exist
-        if not os.path.exists('results'):
-            os.makedirs('results')
-        
-        # Create filename
-        filename = f"results/scan_{target.replace('.', '_')}.csv"
-        
-        try:
-            with open(filename, 'w', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow(['Port', 'Service', 'Status'])
-                
-                for port, service in self.open_ports:
-                    writer.writerow([port, service, 'OPEN'])
-            
-            print(f"✓ Results saved to: {filename}")
-        except Exception as e:
-            print(f"❌ Error saving file: {e}")
-    
     def run(self):
-        """Main scanning function"""
+        """Main function"""
         self.display_banner()
         
         try:
@@ -183,17 +152,9 @@ class PortScanner:
                 print("❌ Invalid port range! Ports must be 1-65535")
                 return
             
-            print("\n" + "="*60)
-            
             # Run scan
             if self.scan_range(target, start_port, end_port):
                 self.display_results()
-                
-                # Save to CSV
-                if self.open_ports:
-                    save = input("Save results to CSV? (y/n): ").strip().lower()
-                    if save == 'y':
-                        self.save_to_csv(target)
         
         except ValueError:
             print("❌ Invalid input! Please enter numbers for ports.")
@@ -204,7 +165,6 @@ class PortScanner:
 
 
 def main():
-    """Main entry point"""
     scanner = PortScanner()
     scanner.run()
 
